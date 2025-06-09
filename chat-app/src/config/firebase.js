@@ -1,8 +1,8 @@
-// Start of Selection
+
 import { initializeApp } from "firebase/app";
 import { createUserWithEmailAndPassword, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirestore, setDoc, doc, collection, query, where, getDocs } from "firebase/firestore"; // Исправлено: getFireStore на getFirestore
-import { getStorage } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "react-toastify";
 
 const firebaseConfig = {

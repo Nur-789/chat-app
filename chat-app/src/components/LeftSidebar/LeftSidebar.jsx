@@ -6,6 +6,8 @@ import { arrayUnion, collection, doc, getDoc, getDocs, query, serverTimestamp, u
 import { db } from '../../config/firebase'
 import { AppContext } from '../../context/AppContext'
 import { toast } from 'react-toastify'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { storage } from '../../config/firebase'
 
 const LeftSidebar = () => {
 
@@ -51,7 +53,7 @@ const LeftSidebar = () => {
         const chatsRef = collection(db, "chats");
         try {
             const newMessageRef = doc(messagesRef);
-            await setDoc(newMessageRef,{
+            await setDoс(newMessageRef,{
                 createAt: serverTimestamp(),
                 messages: []
             })
@@ -93,6 +95,24 @@ const LeftSidebar = () => {
             console.error(error)
         }
     }
+
+    
+    const upload = async (file) => {
+        try {
+            const storageRef = ref(storage, `images/${Date.now()}${file.name}`);
+            const uploadTask = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(uploadTask.ref);
+            return downloadURL;
+        } catch (error) {
+            console.error("Ошибка загрузки файла:", error);
+            if (error.code === 'storage/cors-error') {
+                toast.error("Ошибка CORS при загрузке файла");
+            } else {
+                toast.error("Ошибка при загрузке файла");
+            }
+            throw error;
+        }
+    };
 
     const setChat = async (item) => {
         try {
@@ -151,15 +171,15 @@ const LeftSidebar = () => {
                 <img src={user.avatar} alt="" />
                 <p>{user.name}</p>
             </div>
-            :chatsData.map((item, index)=>(
+            :chatsData && Array.isArray(chatsData) ? chatsData.map((item, index)=>(
                 <div onClick={()=>setChat(item)} key={index} className={`friends ${item.messageSeen || item.messageId === messagesId ? "" : "border"}`}>
-                <img src={item.userData.avatar} alt="" />
-                <div className="">
-                    <p>{item.userData.name}</p>
-                    <span>{item.lastMessage}</span>
+                    <img src={item?.userData?.avatar || ""} alt="" />
+                    <div className="">
+                        <p>{item?.userData?.name || "Ошибка: нет имени"}</p>
+                        <span>{item?.lastMessage || "Нет сообщений"}</span>
+                    </div>
                 </div>
-            </div>
-            ))  
+            )) : <div className="error">Ошибка загрузки чатов</div>
             }
         </div>
     </div>

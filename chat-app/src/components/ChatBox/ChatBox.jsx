@@ -27,7 +27,7 @@ const ChatBox = () => {
 
                 const userIDs = [chatUser.rId, userData.id];
 
-                userIDs.forEach(async (id) =>{
+                for (const id of userIDs) {
                     const userChatRef = doc(db, 'chats', id);
                     const userChatsSnapshot = await getDoc(userChatRef);
 
@@ -43,7 +43,7 @@ const ChatBox = () => {
                             chatsData: userChatData.chatsData
                         })
                     }
-                })
+                }
             }
 
         } catch (error) {
@@ -68,7 +68,7 @@ const ChatBox = () => {
 
                 const userIDs = [chatUser.rId, userData.id];
 
-                userIDs.forEach(async (id) =>{
+                for (const id of userIDs) {
                     const userChatRef = doc(db, 'chats', id);
                     const userChatsSnapshot = await getDoc(userChatRef);
 
@@ -84,7 +84,7 @@ const ChatBox = () => {
                             chatsData: userChatData.chatsData
                         })
                     }
-                })
+                }
 
             }
             

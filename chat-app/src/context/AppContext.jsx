@@ -28,10 +28,17 @@ const AppContextProvider = (props) => {
             }
             const userData = userSnap.data();
             setUserData(userData);
-            if (userData.avatar && userData.name) {
-                navigate('/chat');
-            } else {
-                navigate('/profile');
+            
+            if (auth.currentUser) {
+                if (userData.avatar && userData.name) {
+                    navigate('/chat');
+                } else {
+                    navigate('/profile');
+                }
+            }
+            
+            if (intervalId) {
+                clearInterval(intervalId);
             }
             
             currentIntervalId = setInterval(async () => {
@@ -42,6 +49,7 @@ const AppContextProvider = (props) => {
                         });
                     } catch (error) {
                         console.error("Ошибка при обновлении lastSeen:", error);
+                        clearInterval(currentIntervalId);
                     }
                 } else {
                     clearInterval(currentIntervalId);
@@ -52,6 +60,9 @@ const AppContextProvider = (props) => {
         } catch (error) {
             console.error("Ошибка загрузки данных пользователя:", error);
             toast.error("Не удалось загрузить данные пользователя");
+            if (currentIntervalId) {
+                clearInterval(currentIntervalId);
+            }
         }
     }
 
@@ -63,17 +74,21 @@ const AppContextProvider = (props) => {
                     console.error("Чаты не найдены");
                     return;
                 }
-                const chatItems = res.data().chatData; // Исправлено: chatsData на chatData
+                const data = res.data(); 
+                const chatItems = data.chatData || [];
                 const tempData = [];
+                
                 for (const item of chatItems) {
-                    const userRef = doc(db, 'users', item.rId);
-                    const userSnap = await getDoc(userRef);
-                    if (!userSnap.exists()) {
-                        console.error(`Пользователь с ID ${item.rId} не найден`);
-                        continue;
+                    try {
+                        const userRef = doc(db, 'users', item.rId);
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                            const userData = userSnap.data();
+                            tempData.push({ ...item, userData });
+                        }
+                    } catch (error) {
+                        console.error(`Ошибка при получении данных пользователя ${item.rId}:`, error);
                     }
-                    const userData = userSnap.data();
-                    tempData.push({ ...item, userData });
                 }
                 setChatData(tempData.sort((a, b) => b.updatedAt - a.updatedAt));
             });

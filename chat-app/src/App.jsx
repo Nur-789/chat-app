@@ -14,21 +14,25 @@ import { AppContext } from './context/AppContext'
 const App = () => {
 
   const navigate = useNavigate();
-  const {loadUserData} = useContext(AppContext);
+  const {loadUserData, userData} = useContext(AppContext);
 
   useEffect(()=>{
     const unsubscribe = onAuthStateChanged(auth, async (user)=>{
       try {
         if (user) {
-          navigate('/chat')
-          await loadUserData(user.uid)
-        }
-        else{
-          navigate('/')
+          await loadUserData(user.uid);
+          if (userData?.avatar && userData?.name) {
+            navigate('/chat');
+          } else {
+            navigate('/profile');
+          }
+        } else {
+          navigate('/');
         }
       } catch (error) {
         console.error("Ошибка при проверке состояния аутентификации:", error);
         toast.error("Произошла ошибка при проверке авторизации");
+        navigate('/');
       }
     });
 
